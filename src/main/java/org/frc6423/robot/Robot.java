@@ -18,19 +18,20 @@ import org.frc6423.monologue.Monologue;
 import org.frc6423.monologue.Monologue.MonologueConfig;
 import org.frc6423.robot.Constants.Flags;
 
-/**
- * Main robot program
- *
- * <p>All robot hardware should be initialized here
+/** 
+ * <p> This class is where the robot's structure is declared (subsystems, commands, triggers, etc.).
+ * 
+ * <p> Only scheduler calls are allowed in the {@link Robot} periodic methods. Very little logic should be defined in it.
  */
 public class Robot extends CommandRobot implements Logged {
   public Robot() {
+    // Set looptime from Constants class
     super(Flags.LOOPTIME.in(Seconds));
 
     // Prevent driverstation from clogging output
     DriverStation.silenceJoystickConnectionWarning(true);
 
-    // Init Monologue
+    // Initialize Monologue
     Monologue.setupMonologue(
         this,
         "/Robot",
@@ -52,7 +53,7 @@ public class Robot extends CommandRobot implements Logged {
     Monologue.log(meta + "GitDate", BuildConstants.GIT_DATE);
     Monologue.log(meta + "GitBranch", BuildConstants.GIT_BRANCH);
 
-    // Set monologue to update and trace every loop
+    // Update and trace monologue periodically
     addPeriodic(
         () -> Tracer.traceFunc("Monologue", Monologue::updateAll), Flags.LOOPTIME.in(Seconds));
 
@@ -60,7 +61,7 @@ public class Robot extends CommandRobot implements Logged {
     configureGameBehavior();
   }
 
-  /** Configure all Drive & Operator controller bindings */
+  /** Configure all Driver & Operator controller bindings */
   private void configureBindings() {}
 
   /** Configure behavior during different match sections */
@@ -68,6 +69,7 @@ public class Robot extends CommandRobot implements Logged {
 
   @Override
   protected Command getAutonCommand() {
+    // TODO Replace placeholder
     return Commands.none();
   }
 }
