@@ -18,10 +18,11 @@ import org.frc6423.monologue.Monologue;
 import org.frc6423.monologue.Monologue.MonologueConfig;
 import org.frc6423.robot.Constants.Flags;
 
-/** 
- * <p> This class is where the robot's structure is declared (subsystems, commands, triggers, etc.).
- * 
- * <p> Only scheduler calls are allowed in the {@link Robot} periodic methods. Very little logic should be defined in it.
+/**
+ * This class is where the robot's structure is declared (subsystems, commands, triggers, etc.).
+ *
+ * <p>Only scheduler calls are allowed in the {@link Robot} periodic methods. Very little logic
+ * should be defined in it.
  */
 public class Robot extends CommandRobot implements Logged {
   public Robot() {
