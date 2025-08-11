@@ -19,14 +19,18 @@ import org.frc6423.monologue.Monologue.MonologueConfig;
 import org.frc6423.robot.Constants.Flags;
 
 /**
- * This class is where the robot's structure is declared (subsystems, commands, triggers, etc.).
+ * Declares the structure of the robot program (subsystems, commands, triggers, etc.).
  *
- * <p>Only scheduler calls are allowed in the {@link Robot} periodic methods. Very little logic
+ * <p>Only scheduler calls are allowed in the {@link Robot} periodic method. Very little logic
  * should be defined in it.
  */
 public class Robot extends CommandRobot implements Logged {
+  // * SUBSYSTEM INIT
+
+  // * TRIGGER INIT
+
   public Robot() {
-    // Set looptime from Constants class
+    // Set looptime from its flag
     super(Flags.LOOPTIME.in(Seconds));
 
     // Prevent driverstation from clogging output
