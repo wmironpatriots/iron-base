@@ -6,7 +6,7 @@
 
 package org.frc6423.lib;
 
-/** A boolean that will have a final value of true once toggled */
+/** Represents a boolean that will have a final value of true once toggled */
 public class Latch {
   private boolean value = false;
 
