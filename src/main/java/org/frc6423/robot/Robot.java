@@ -8,7 +8,11 @@ package org.frc6423.robot;
 
 import static edu.wpi.first.units.Units.Seconds;
 
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import org.frc6423.lib.CommandRobot;
@@ -25,9 +29,23 @@ import org.frc6423.robot.Constants.Flags;
  * should be defined in it.
  */
 public class Robot extends CommandRobot implements Logged {
+  // * IO INIT
+  private final XboxController driverController = new XboxController(0);
+  private final XboxController operatorController = new XboxController(1);
+
   // * SUBSYSTEM INIT
+  /** Replace this line with subsystem declerations */
 
   // * TRIGGER INIT
+  /** Replace this line with trigger declerations */
+
+  // * ALERT INIT
+  private final Alert batteryBrownout = new Alert("Battery voltage output low", AlertType.kWarning);
+
+  private final Alert driverDisconnected =
+      new Alert("Driver controller is Disconnected", AlertType.kWarning);
+  private final Alert operatorDisconnected =
+      new Alert("Operator controller is Disconnected", AlertType.kWarning);
 
   public Robot() {
     // Set looptime from its flag
@@ -62,8 +80,18 @@ public class Robot extends CommandRobot implements Logged {
     addPeriodic(
         () -> Tracer.traceFunc("Monologue", Monologue::updateAll), Flags.LOOPTIME.in(Seconds));
 
+    // Update drive dashboard periodically
+    addPeriodic(this::updateDashboard, 0.02);
+
     configureBindings();
     configureGameBehavior();
+  }
+
+  /** Update all driver dashboard values on NetworkTables */
+  private void updateDashboard() {
+    batteryBrownout.set(RobotController.isBrownedOut());
+    driverDisconnected.set(!driverController.isConnected());
+    operatorDisconnected.set(!operatorController.isConnected());
   }
 
   /** Configure all Driver & Operator controller bindings */
