@@ -4,7 +4,7 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // MIT license file in the root directory of this project
 
-package org.frc6423.lib;
+package org.frc6423.lib.util;
 
 import edu.wpi.first.hal.AllianceStationID;
 import edu.wpi.first.hal.HAL;
@@ -13,7 +13,7 @@ import edu.wpi.first.wpilibj.simulation.SimHooks;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
 /** Contains static methods for creating tests */
-public class TestUtils {
+public class TestUtil {
   /** Set up DS and initalizes HAL with default values and asserts that it doesn't fail */
   public static void setupTest() {
     assert HAL.initialize(500, 0);

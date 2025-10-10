@@ -6,8 +6,8 @@
 
 package org.frc6423.robot;
 
-import static org.frc6423.lib.TestUtils.reset;
-import static org.frc6423.lib.TestUtils.setupTest;
+import static org.frc6423.lib.util.TestUtil.reset;
+import static org.frc6423.lib.util.TestUtil.setupTest;
 
 import org.junit.jupiter.api.BeforeEach;
 
