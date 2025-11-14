@@ -1,8 +1,10 @@
-// Copyright (c) FIRST and other WPILib contributors.
+// Copyright (c) !!YEAR!! FRC 6423 - Ward Melville Iron Patriots
+// https://github.com/wmironpatriots
+// 
 // Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
+// MIT license file in the root directory of this project
 
-package frc.robot;
+package org.frc6423.robot;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
