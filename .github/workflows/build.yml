@@ -1,12 +1,13 @@
 # Checks if code compiles
 
+name: Build
+
 on:
   push:
   pull_request:
 
 jobs:
   build:
-    name: Build
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:

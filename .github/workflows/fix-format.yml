@@ -1,12 +1,13 @@
 # Checks and fixes formating with spotless if necessary
 
+name: Format
+
 on:
   push:
   pull_request:
 
 jobs:
   fix-format:
-    name: fix-format
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
