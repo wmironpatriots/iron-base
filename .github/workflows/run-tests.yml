@@ -5,8 +5,8 @@ on:
   pull_request:
 
 jobs:
-  build:
-    name: fix-format
+  run-tests:
+    name: run-tests
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
