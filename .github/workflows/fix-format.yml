@@ -6,7 +6,6 @@ on:
 
 jobs:
   fix-format:
-    name: fix-format
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
