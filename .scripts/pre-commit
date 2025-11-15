@@ -7,7 +7,7 @@ RED='\e[31m!'
 NC='\e[0m'
 
 echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-echo "--- Starting Pre-Commit Checks ---"
+echo "~~~ Starting Pre-Commit Checks ~~~"
 echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 
 # Gather the staged files - to make sure changes are saved only for these files.
