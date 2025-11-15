@@ -1,73 +1,74 @@
-// TODO Put Year Copyright (c) {year} FRC 6423 - Ward Melville Iron Patriots
-// https://github.com/FIRSTTeam6423
+// Copyright (c) !!YEAR!! FRC 6423 - Ward Melville Iron Patriots
+// https://github.com/wmironpatriots
 // 
 // Open Source Software; you can modify and/or share it under the terms of
 // MIT license file in the root directory of this project
 
 package org.frc6423.robot;
 
-import static edu.wpi.first.units.Units.Seconds;
-
-import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
-import org.frc6423.lib.CommandRobot;
-import org.frc6423.lib.Tracer;
-import org.frc6423.monologue.Logged;
-import org.frc6423.monologue.Monologue;
-import org.frc6423.monologue.Monologue.MonologueConfig;
-import org.frc6423.robot.Constants.Flags;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
-/**
- * Main robot program
- *
- * <p>All robot hardware should be initialized here
- */
-public class Robot extends CommandRobot implements Logged {
+public class Robot extends TimedRobot {
+  private Command m_autonomousCommand;
+
+  private final RobotContainer m_robotContainer;
+
   public Robot() {
-    super(Flags.LOOPTIME.in(Seconds));
-
-    // Prevent driverstation from clogging output
-    DriverStation.silenceJoystickConnectionWarning(true);
-
-    // Init Monologue
-    Monologue.setupMonologue(
-        this,
-        "/Robot",
-        new MonologueConfig()
-            .withAllowNonFinalLoggedFields(true)
-            .withDatalogPrefix("Telemetry")
-            .withLazyLogging(true)
-            .withOptimizeBandwidth(DriverStation::isFMSAttached)
-            .withThrowOnWarning(false));
-
-    // Log build data to datalog
-    final String meta = "/BuildData/";
-    Monologue.log(meta + "RuntimeType", getRuntimeType().toString());
-    Monologue.log(meta + "ProjectName", BuildConstants.MAVEN_NAME);
-    Monologue.log(meta + "Version", BuildConstants.VERSION);
-    Monologue.log(meta + "BuildDate", BuildConstants.BUILD_DATE);
-    Monologue.log(meta + "GitDirty", String.valueOf(BuildConstants.DIRTY));
-    Monologue.log(meta + "GitSHA", BuildConstants.GIT_SHA);
-    Monologue.log(meta + "GitDate", BuildConstants.GIT_DATE);
-    Monologue.log(meta + "GitBranch", BuildConstants.GIT_BRANCH);
-
-    // Set monologue to update and trace every loop
-    addPeriodic(
-        () -> Tracer.traceFunc("Monologue", Monologue::updateAll), Flags.LOOPTIME.in(Seconds));
-
-    configureBindings();
-    configureGameBehavior();
+    m_robotContainer = new RobotContainer();
   }
-
-  /** Configure all Drive & Operator controller bindings */
-  private void configureBindings() {}
-
-  /** Configure behavior during different match sections */
-  private void configureGameBehavior() {}
 
   @Override
-  protected Command getAutonCommand() {
-    return Commands.none();
+  public void robotPeriodic() {
+    CommandScheduler.getInstance().run();
   }
+
+  @Override
+  public void disabledInit() {}
+
+  @Override
+  public void disabledPeriodic() {}
+
+  @Override
+  public void disabledExit() {}
+
+  @Override
+  public void autonomousInit() {
+    m_autonomousCommand = m_robotContainer.getAutonomousCommand();
+
+    if (m_autonomousCommand != null) {
+      m_autonomousCommand.schedule();
+    }
+  }
+
+  @Override
+  public void autonomousPeriodic() {}
+
+  @Override
+  public void autonomousExit() {}
+
+  @Override
+  public void teleopInit() {
+    if (m_autonomousCommand != null) {
+      m_autonomousCommand.cancel();
+    }
+  }
+
+  @Override
+  public void teleopPeriodic() {}
+
+  @Override
+  public void teleopExit() {}
+
+  @Override
+  public void testInit() {
+    CommandScheduler.getInstance().cancelAll();
+  }
+
+  @Override
+  public void testPeriodic() {}
+
+  @Override
+  public void testExit() {}
 }

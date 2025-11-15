@@ -1,13 +1,13 @@
-# Checks if code compiles
+# Runs all tests
 
-name: Build
+name: Test
 
 on:
   push:
   pull_request:
 
 jobs:
-  build:
+  run-tests:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
@@ -20,5 +20,5 @@ jobs:
           java-version: "17"
       - name: Grant executive perms
         run: chmod +x gradlew
-      - name: Build Robot Code
-        run: ./gradlew build
+      - name: Run robot tests
+        run: ./gradlew test

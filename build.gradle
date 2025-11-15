@@ -1,9 +1,8 @@
 plugins {
     id "java"
     id "edu.wpi.first.GradleRIO" version "2025.3.2"
-    id "com.diffplug.spotless" version "7.0.4"
+    id "com.diffplug.spotless" version "8.0.0"
     id "com.peterabeles.gversion" version "1.10.3"
-    id "io.freefair.lombok" version "8.14"
 }
 
 java {
@@ -12,6 +11,8 @@ java {
 }
 
 def ROBOT_MAIN_CLASS = "org.frc6423.robot.Main"
+
+final MAX_JAVA_HEAP_SIZE_MB = 100;
 
 // Define my targets (RoboRIO) and artifacts (deployable files)
 // This is added by GradleRIO's backing project DeployUtils.
@@ -35,13 +36,30 @@ deploy {
                     jvmArgs.add("-XX:+UseSerialGC")
                     jvmArgs.add("-XX:MaxGCPauseMillis=50")
 
-                    // RIO 2.0 ONLY
-                    final MAX_JAVA_HEAP_SIZE_MB = 100;
+                    // TO ENTER PROFILE MODE:
+                    // Run: ./gradlew deploy -PprofileMode
+                    // -- do not do this unless you want profiling mode, it can slow the robot down.
+                    //Enter profile mode with ./gradlew deploy -PprofileMode
+                    if (frc.project.hasProperty("profileMode")) {
+                        project.logger.lifecycle('\u001B[31m~~~~ PROFILING MODE ENABLED ~~~~\u001B[0m')
+                        project.logger.lifecycle("Connect JMX client to roborio-" + team + "-frc.local:1099 or " + "10." + (team / 100) + ".2" + ":1099 for RoboRIO profiling with visualvm.")
+                        jvmArgs.add("-Dcom.sun.management.jmxremote=true")
+                        jvmArgs.add("-Dcom.sun.management.jmxremote.port=1099")
+                        jvmArgs.add("-Dcom.sun.management.jmxremote.local.only=false")
+                        jvmArgs.add("-Dcom.sun.management.jmxremote.ssl=false")
+                        jvmArgs.add("-Dcom.sun.management.jmxremote.authenticate=false")
+                        jvmArgs.add("-Djava.rmi.server.hostname=" + "10." + (team / 100) + ".2")
+                    }
+
+                    // ! Memory Optimizations (RIO 2.0 ONLY)
+                    // Set the minimum heap size to the maximum heap size to avoid resizing
                     jvmArgs.add("-Xmx" + MAX_JAVA_HEAP_SIZE_MB + "M")
                     jvmArgs.add("-Xms" + MAX_JAVA_HEAP_SIZE_MB + "M")
+                    jvmArgs.add("-XX:GCTimeRatio=5")
+                    jvmArgs.add("-XX:+UseSerialGC")
+                    jvmArgs.add("-XX:MaxGCPauseMillis=50")
                     jvmArgs.add("-XX:+AlwaysPreTouch")
                 }
-
 
                 // Static files artifact
                 frcStaticFileDeploy(getArtifactTypeClass('FileTreeArtifact')) {
@@ -83,18 +101,17 @@ dependencies {
     nativeRelease wpi.java.vendor.jniRelease(wpi.platforms.desktop)
     simulationRelease wpi.sim.enableRelease()
 
-    // Junit testing
-    testImplementation(platform('org.junit:junit-bom:5.13.3'))
-    testImplementation('org.junit.jupiter:junit-jupiter')
-    testRuntimeOnly('org.junit.platform:junit-platform-launcher')
+    // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:6.0.1'
+    // https://mvnrepository.com/artifact/org.junit.platform/junit-platform-launcher
+    testImplementation 'org.junit.platform:junit-platform-launcher:6.0.1'
+    // https://mvnrepository.com/artifact/org.junit.platform/junit-platform-launcher
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher:6.01'
 }
 
 test {
     useJUnitPlatform()
     systemProperty 'junit.jupiter.extensions.autodetection.enabled', 'true'
-    testLogging {
-        events "passed", "skipped", "failed"
-    }
 }
 
 // Simulation configuration (e.g. environment variables).
@@ -129,8 +146,8 @@ tasks.withType(JavaCompile) {
 task installGitHooks(type: Copy) {
     from '.scripts'
     into '.git/hooks'
+    logger.info("Successfully Installed Hooks!")
 }
-project.compileJava.dependsOn(installGitHooks)
 
 // Generate Build Constants
 project.compileJava.dependsOn(createVersionFile)
@@ -143,7 +160,6 @@ gversion {
     indent = "  "
 }
 
-// Spotless auto format
 project.compileJava.dependsOn(spotlessApply)
 spotless {
     java {
@@ -156,7 +172,8 @@ spotless {
         removeUnusedImports()
         trimTrailingWhitespace()
         endWithNewline()
-        licenseHeader("// TODO Put Year Copyright (c) {year} FRC 6423 - Ward Melville Iron Patriots\n// https://github.com/FIRSTTeam6423\n// \n// Open Source Software; you can modify and/or share it under the terms of\n// MIT license file in the root directory of this project\n\n")
+        // TODO update year
+        licenseHeader("// Copyright (c) !!YEAR!! FRC 6423 - Ward Melville Iron Patriots\n// https://github.com/wmironpatriots\n// \n// Open Source Software; you can modify and/or share it under the terms of\n// MIT license file in the root directory of this project\n\n")
     }
     groovyGradle {
         target fileTree('.') {
