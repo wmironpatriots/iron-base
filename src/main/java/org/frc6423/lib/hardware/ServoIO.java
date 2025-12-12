@@ -13,15 +13,16 @@ import java.util.function.UnaryOperator;
 public abstract class ServoIO implements Sendable {
   public static enum SetpointType {
     IDLE,
-    VOLTAGE,
     DUTYCYCLE,
+    VOLTAGE,
+    CURRENT,
     POSITION,
     VELOCITY,
     PROFILED_POSITION,
     PROFILED_VELOCITY;
   }
 
-  public static class Setpoint implements Sendable {
+  public static class Setpoint {
     private final double value;
     private final SetpointType type;
     private final UnaryOperator<ServoIO> applier;
@@ -32,18 +33,21 @@ public abstract class ServoIO implements Sendable {
       this.applier = applier;
     }
 
-    @Override
-    public void initSendable(SendableBuilder builder) {
-      builder.addStringProperty("Setpoint Type", () -> getSetpointType().name(), null);
-      builder.addDoubleProperty("Setpoint", () -> getSetpointValue(), null);
-    }
-
     public double getSetpointValue() {
       return value;
     }
 
     public SetpointType getSetpointType() {
       return type;
+    }
+
+    public static Setpoint withDutycycle(double output) {
+      UnaryOperator<ServoIO> applier =
+          (ServoIO io) -> {
+            io.setDutyCycleSetpoint(output);
+            return io;
+          };
+      return new Setpoint(output, SetpointType.DUTYCYCLE, applier);
     }
 
     public static Setpoint withVoltage(double output) {
@@ -55,50 +59,78 @@ public abstract class ServoIO implements Sendable {
       return new Setpoint(output, SetpointType.VOLTAGE, applier);
     }
 
-    public static Setpoint withDutyCycle(double output) {
+    public static Setpoint withCurrent(double output) {
       UnaryOperator<ServoIO> applier =
           (ServoIO io) -> {
-            io.setDutyCycleSetpoint(output);
+            io.setCurrentSetpoint(output);
             return io;
           };
-      return new Setpoint(output, SetpointType.DUTYCYCLE, applier);
+      return new Setpoint(output, SetpointType.CURRENT, applier);
     }
 
     public static Setpoint withPosition(double output) {
+      return withPosition(output, 0);
+    }
+
+    public static Setpoint withPosition(double output, int slot) {
       UnaryOperator<ServoIO> applier =
           (ServoIO io) -> {
-            io.setPositionSetpoint(output);
+            io.setPositionSetpoint(output, slot);
             return io;
           };
       return new Setpoint(output, SetpointType.POSITION, applier);
     }
 
+    public static Setpoint withVelocity(double output) {
+      return withVelocity(output, 0.0, 0);
+    }
+
+    public static Setpoint withVelocity(double output, int slot) {
+      return withVelocity(output, 0.0, slot);
+    }
+
     public static Setpoint withVelocity(double output, double acceleration) {
+      return withVelocity(output, acceleration, 0);
+    }
+
+    public static Setpoint withVelocity(double output, double acceleration, int slot) {
       UnaryOperator<ServoIO> applier =
           (ServoIO io) -> {
-            io.setVelocitySetpoint(output, acceleration);
+            io.setVelocitySetpoint(output, acceleration, slot);
             return io;
           };
       return new Setpoint(output, SetpointType.VELOCITY, applier);
     }
 
-    public static Setpoint withVelocity(double output) {
-      return withVelocity(output, 0.0);
+    public static Setpoint withProfiledPosition(double output) {
+      return withProfiledPosition(output, 0);
     }
 
-    public static Setpoint withProfiledPosition(double output) {
+    public static Setpoint withProfiledPosition(double output, int slot) {
       UnaryOperator<ServoIO> applier =
           (ServoIO io) -> {
-            io.setProfiledPositionSetpoint(output);
+            io.setProfiledPositionSetpoint(output, slot);
             return io;
           };
       return new Setpoint(output, SetpointType.PROFILED_POSITION, applier);
     }
 
     public static Setpoint withProfiledVelocity(double output) {
+      return withProfiledVelocity(output);
+    }
+
+    public static Setpoint withProfiledVelocity(double output, int slot) {
+      return withProfiledVelocity(output, 0.0, slot);
+    }
+
+    public static Setpoint withProfiledVelocity(double output, double acceleration) {
+      return withProfiledVelocity(output, acceleration, 0);
+    }
+
+    public static Setpoint withProfiledVelocity(double output, double acceleration, int slot) {
       UnaryOperator<ServoIO> applier =
           (ServoIO io) -> {
-            io.setProfiledVelocitySetpoint(output);
+            io.setProfiledVelocitySetpoint(output, acceleration, slot);
             return io;
           };
       return new Setpoint(output, SetpointType.PROFILED_VELOCITY, applier);
@@ -128,6 +160,9 @@ public abstract class ServoIO implements Sendable {
     builder.addDoubleProperty("Position (Revolutions)", this::getPositionRevs, null);
     builder.addDoubleProperty("Velocity (Revolutions Per Second)", this::getVelocityRps, null);
     builder.addDoubleProperty("Temperature (Celsius)", this::getTemperatureCelsius, null);
+    builder.addStringProperty(
+        "Setpoint Type", () -> getCurrentSetpoint().getSetpointType().toString(), null);
+    builder.addDoubleProperty("Setpoint", () -> getCurrentSetpoint().getSetpointValue(), null);
   }
 
   public abstract double getAppliedVoltage();
@@ -152,24 +187,22 @@ public abstract class ServoIO implements Sendable {
 
   protected abstract void setVoltageSetpoint(double voltage);
 
-  protected abstract void setPositionSetpoint(double position);
+  protected abstract void setCurrentSetpoint(double current);
 
-  protected abstract void setVelocitySetpoint(double velocity);
+  protected abstract void setPositionSetpoint(double position, int slot);
 
-  protected abstract void setVelocitySetpoint(double velocity, double acceleration);
+  protected abstract void setVelocitySetpoint(double velocity, double acceleration, int slot);
 
-  protected abstract void setProfiledPositionSetpoint(double position);
+  protected abstract void setProfiledPositionSetpoint(double position, int slot);
 
-  protected abstract void setProfiledVelocitySetpoint(double velocity);
+  protected abstract void setProfiledVelocitySetpoint(
+      double velocity, double acceleration, int slot);
 
-  public void applyRequest(Setpoint desiredRequest) {
-    currentSetpoint = desiredRequest;
-    currentSetpoint.apply(this);
+  public void resetEncoder() {
+    resetEncoder(getPositionRevs());
   }
 
   public abstract void resetEncoder(double position);
-
-  public abstract void setHardLimits(double reverseLimit, double forwardLimit);
 
   public abstract void setLeaderServo(int canDeviceId, boolean reverseDirection);
 
