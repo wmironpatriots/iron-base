@@ -6,6 +6,9 @@
 
 package org.frc6423.lib.hardware;
 
+import static edu.wpi.first.units.Units.Seconds;
+
+import edu.wpi.first.units.Unit;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import java.util.function.UnaryOperator;
@@ -150,19 +153,36 @@ public abstract class ServoIO implements Sendable {
     }
   }
 
+  private final Unit positionUnit;
+
   private Setpoint currentSetpoint;
+
+  public ServoIO(Unit positionUnit) {
+    this.positionUnit = positionUnit;
+  }
 
   @Override
   public void initSendable(SendableBuilder builder) {
     builder.addDoubleProperty("Applied Voltage", this::getAppliedVoltage, null);
     builder.addDoubleProperty("Supply Current (Amps)", this::getSupplyCurrentAmperes, null);
     builder.addDoubleProperty("Stator Current (Amps)", this::getStatorCurrentAmperes, null);
-    builder.addDoubleProperty("Position (Revolutions)", this::getPositionRevs, null);
-    builder.addDoubleProperty("Velocity (Revolutions Per Second)", this::getVelocityRps, null);
+
+    builder.addDoubleProperty("Position " + getPositionUnit().toString(), this::getPosition, null);
+    builder.addDoubleProperty("Velocity " + getVelocityUnit().toString(), this::getVelocity, null);
+
     builder.addDoubleProperty("Temperature (Celsius)", this::getTemperatureCelsius, null);
+
     builder.addStringProperty(
         "Setpoint Type", () -> getCurrentSetpoint().getSetpointType().toString(), null);
     builder.addDoubleProperty("Setpoint", () -> getCurrentSetpoint().getSetpointValue(), null);
+  }
+
+  public Unit getPositionUnit() {
+    return positionUnit;
+  }
+
+  public Unit getVelocityUnit() {
+    return positionUnit.per(Seconds);
   }
 
   public abstract double getAppliedVoltage();
@@ -171,9 +191,9 @@ public abstract class ServoIO implements Sendable {
 
   public abstract double getStatorCurrentAmperes();
 
-  public abstract double getPositionRevs();
+  public abstract double getPosition();
 
-  public abstract double getVelocityRps();
+  public abstract double getVelocity();
 
   public abstract double getTemperatureCelsius();
 
@@ -199,7 +219,7 @@ public abstract class ServoIO implements Sendable {
       double velocity, double acceleration, int slot);
 
   public void resetEncoder() {
-    resetEncoder(getPositionRevs());
+    resetEncoder(getPosition());
   }
 
   public abstract void resetEncoder(double position);

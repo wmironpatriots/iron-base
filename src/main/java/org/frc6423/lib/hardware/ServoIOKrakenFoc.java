@@ -18,6 +18,7 @@ import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import edu.wpi.first.units.Unit;
 
 public class ServoIOKrakenFoc extends ServoIO {
   private final TalonFX servo;
@@ -34,7 +35,9 @@ public class ServoIOKrakenFoc extends ServoIO {
   private final MotionMagicVelocityTorqueCurrentFOC profVelReq =
       new MotionMagicVelocityTorqueCurrentFOC(0.0);
 
-  public ServoIOKrakenFoc(String canBusId, int canDeviceId, TalonFXConfiguration config) {
+  public ServoIOKrakenFoc(
+      Unit unit, String canBusId, int canDeviceId, TalonFXConfiguration config) {
+    super(unit);
     servo = new TalonFX(canDeviceId, canBusId);
     this.config = config;
 
@@ -62,12 +65,12 @@ public class ServoIOKrakenFoc extends ServoIO {
   }
 
   @Override
-  public double getPositionRevs() {
+  public double getPosition() {
     return poseSig.getValueAsDouble();
   }
 
   @Override
-  public double getVelocityRps() {
+  public double getVelocity() {
     return velSig.getValueAsDouble();
   }
 
@@ -77,7 +80,9 @@ public class ServoIOKrakenFoc extends ServoIO {
   }
 
   @Override
-  protected void idle() {}
+  protected void idle() {
+    servo.stopMotor();
+  }
 
   @Override
   protected void setDutyCycleSetpoint(double dutycycle) {
