@@ -236,6 +236,8 @@ public abstract class ServoIO implements Sendable {
 
   public abstract void setLeaderServo(int canDeviceId, boolean reverseDirection);
 
+  public abstract void enableSoftLimits(boolean enabled);
+
   /**
    * Enable/disable brake mode
    *

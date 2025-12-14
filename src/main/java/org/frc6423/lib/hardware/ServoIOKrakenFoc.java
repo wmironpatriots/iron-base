@@ -7,6 +7,7 @@
 package org.frc6423.lib.hardware;
 
 import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.Follower;
@@ -19,6 +20,9 @@ import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.units.Unit;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 
 public class ServoIOKrakenFoc extends ServoIO {
   private final TalonFX servo;
@@ -35,6 +39,10 @@ public class ServoIOKrakenFoc extends ServoIO {
   private final MotionMagicVelocityTorqueCurrentFOC profVelReq =
       new MotionMagicVelocityTorqueCurrentFOC(0.0);
 
+  private BlockingQueue<Runnable> queue = new LinkedBlockingQueue<>();
+  private ThreadPoolExecutor threadPoolExecutor =
+      new ThreadPoolExecutor(1, 1, 5, java.util.concurrent.TimeUnit.MILLISECONDS, queue);
+
   public ServoIOKrakenFoc(
       Unit unit, String canBusId, int canDeviceId, TalonFXConfiguration config) {
     super(unit);
@@ -47,6 +55,18 @@ public class ServoIOKrakenFoc extends ServoIO {
     poseSig = servo.getPosition();
     velSig = servo.getVelocity();
     tempSig = servo.getDeviceTemp();
+  }
+
+  public void applyConfig(TalonFX fx, TalonFXConfiguration config) {
+    threadPoolExecutor.submit(
+        () -> {
+          for (int i = 0; i < 5; i++) {
+            StatusCode result = fx.getConfigurator().apply(config);
+            if (result.isOK()) {
+              break;
+            }
+          }
+        });
   }
 
   @Override
@@ -122,7 +142,7 @@ public class ServoIOKrakenFoc extends ServoIO {
 
   @Override
   public void resetEncoder(double position) {
-    servo.setPosition(position);
+    threadPoolExecutor.submit(() -> servo.setPosition(position));
   }
 
   @Override
@@ -131,7 +151,13 @@ public class ServoIOKrakenFoc extends ServoIO {
   }
 
   @Override
+  public void enableSoftLimits(boolean enabled) {
+    // TODO
+  }
+
+  @Override
   public void brakeEnabled(boolean enabled) {
-    config.MotorOutput.NeutralMode = enabled ? NeutralModeValue.Brake : NeutralModeValue.Coast;
+    threadPoolExecutor.submit(
+        () -> servo.setNeutralMode(enabled ? NeutralModeValue.Brake : NeutralModeValue.Coast));
   }
 }
