@@ -25,10 +25,11 @@ import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-import edu.wpi.first.units.Unit;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularAcceleration;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.units.measure.Dimensionless;
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
 import java.util.concurrent.BlockingQueue;
@@ -54,9 +55,7 @@ public class ServoIOKrakenFoc extends ServoIO {
   private ThreadPoolExecutor threadPoolExecutor =
       new ThreadPoolExecutor(1, 1, 5, java.util.concurrent.TimeUnit.MILLISECONDS, queue);
 
-  public ServoIOKrakenFoc(
-      Unit unit, String canBusId, int canDeviceId, TalonFXConfiguration config) {
-    super(unit);
+  public ServoIOKrakenFoc(String canBusId, int canDeviceId, TalonFXConfiguration config) {
     servo = new TalonFX(canDeviceId, canBusId);
     this.config = config;
     applyConfig(config);
@@ -117,43 +116,45 @@ public class ServoIOKrakenFoc extends ServoIO {
   }
 
   @Override
-  protected void setDutyCycleSetpoint(double dutycycle) {
-    servo.setControl(dutycycleReq.withOutput(dutycycle));
+  protected void setDutyCycleSetpoint(Dimensionless dutycycle) {
+    servo.setControl(dutycycleReq.withOutput(dutycycle.baseUnitMagnitude()));
   }
 
   @Override
-  protected void setVoltageSetpoint(double voltage) {
+  protected void setVoltageSetpoint(Voltage voltage) {
     servo.setControl(voltReq.withOutput(voltage));
   }
 
   @Override
-  protected void setCurrentSetpoint(double current) {
+  protected void setCurrentSetpoint(Current current) {
     servo.setControl(currentReq.withOutput(current));
   }
 
   @Override
-  protected void setPositionSetpoint(double position, int slot) {
+  protected void setPositionSetpoint(Angle position, int slot) {
     servo.setControl(poseReq.withPosition(position).withSlot(slot));
   }
 
   @Override
-  protected void setVelocitySetpoint(double velocity, double acceleration, int slot) {
+  protected void setVelocitySetpoint(
+      AngularVelocity velocity, AngularAcceleration acceleration, int slot) {
     servo.setControl(velReq.withVelocity(velocity).withAcceleration(acceleration).withSlot(slot));
   }
 
   @Override
-  protected void setProfiledPositionSetpoint(double position, int slot) {
+  protected void setProfiledPositionSetpoint(Angle position, int slot) {
     servo.setControl(profPoseReq.withPosition(position).withSlot(slot));
   }
 
   @Override
-  protected void setProfiledVelocitySetpoint(double velocity, double acceleration, int slot) {
+  protected void setProfiledVelocitySetpoint(
+      AngularVelocity velocity, AngularAcceleration acceleration, int slot) {
     servo.setControl(
         profVelReq.withVelocity(velocity).withAcceleration(acceleration).withSlot(slot));
   }
 
   @Override
-  public void resetEncoder(double position) {
+  public void resetEncoder(Angle position) {
     threadPoolExecutor.submit(() -> servo.setPosition(position));
   }
 

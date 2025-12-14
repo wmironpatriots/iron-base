@@ -6,7 +6,17 @@
 
 package org.frc6423.lib.driver;
 
+import static edu.wpi.first.units.Units.Revolutions;
+import static edu.wpi.first.units.Units.RevolutionsPerSecond;
+import static edu.wpi.first.units.Units.Seconds;
+
 import edu.wpi.first.epilogue.Logged;
+import edu.wpi.first.units.BaseUnits;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.units.measure.Temperature;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import java.util.function.Supplier;
@@ -24,39 +34,55 @@ public class MotorSubsystem extends SubsystemBase {
   @Override
   public void periodic() {}
 
-  public double getAppliedVoltage() {
+  public Voltage getAppliedVoltage() {
     return hardware.getAppliedVoltage();
   }
 
-  public double getSupplyCurrentAmperes() {
+  public Current getSupplyCurrentAmperes() {
     return hardware.getSupplyCurrent();
   }
 
-  public double getStatorCurrentAmperes() {
+  public Current getStatorCurrentAmperes() {
     return hardware.getStatorCurrent();
   }
 
-  public double getPosition() {
+  public Angle getPosition() {
     return hardware.getPosition();
   }
 
-  public double getVelocity() {
+  public AngularVelocity getVelocity() {
     return hardware.getVelocity();
   }
 
-  public double getTemperatureCelsius() {
+  public Temperature getTemperatureCelsius() {
     return hardware.getTemperature();
   }
 
-  public Setpoint getCurrentSetpoint() {
+  public Setpoint getSetpoint() {
     return hardware.getCurrentSetpoint();
+  }
+
+  public double getSetpointValue() {
+    return getSetpoint().getSetpointValue();
+  }
+
+  public Angle getSetpointAngle() {
+    return getSetpoint().isPositionSetpoint()
+        ? Revolutions.of(0)
+        : BaseUnits.AngleUnit.of(getSetpointValue());
+  }
+
+  public AngularVelocity getSetpointVelocity() {
+    return getSetpoint().isVelocitySetpoint()
+        ? RevolutionsPerSecond.of(0)
+        : BaseUnits.AngleUnit.per(Seconds).of(getSetpointValue());
   }
 
   protected void applySetpoint(Setpoint setpoint) {
     setpoint.apply(hardware);
   }
 
-  protected void setPosition(double position) {
+  protected void setPosition(Angle position) {
     hardware.resetEncoder(position);
   }
 

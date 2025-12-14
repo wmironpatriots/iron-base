@@ -6,8 +6,16 @@
 
 package org.frc6423.lib.driver;
 
+import static edu.wpi.first.units.Units.Revolutions;
+import static edu.wpi.first.units.Units.Seconds;
+
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.units.BaseUnits;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Time;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -23,17 +31,17 @@ public class PositionSubsystem extends MotorSubsystem {
   private boolean isTared = false;
   private boolean isTaring = false;
   private DelayedLatch tareDelay;
-  protected final double epsilon;
+  protected final Angle epsilon;
 
   public static class TaringConfig {
-    public double taredPosition;
-    public double taringVoltage;
-    public double taringTimeoutSeconds;
-    public double taredVelocity;
+    public Angle taredPosition;
+    public Voltage taringVoltage;
+    public Time taringTimeoutSeconds;
+    public AngularVelocity taredVelocity;
   }
 
   public PositionSubsystem(
-      ServoIO hardware, boolean isTaredSubsystem, TaringConfig taringConfig, double epsilon) {
+      ServoIO hardware, boolean isTaredSubsystem, TaringConfig taringConfig, Angle epsilon) {
     super(hardware);
     this.isTaredSubsystem = isTaredSubsystem;
     this.taringConfig = taringConfig;
@@ -47,15 +55,19 @@ public class PositionSubsystem extends MotorSubsystem {
       if (!isTared) {
         isTaring = true;
         hardware.enableSoftLimits(false);
-        tareDelay = new DelayedLatch(Timer.getFPGATimestamp(), taringConfig.taringTimeoutSeconds);
+        tareDelay =
+            new DelayedLatch(
+                Timer.getFPGATimestamp(), taringConfig.taringTimeoutSeconds.in(Seconds));
       }
       if (isTaring) {
         applySetpoint(Setpoint.withVoltage(taringConfig.taringVoltage));
         if (tareDelay.update(
-                Timer.getFPGATimestamp(), Math.abs(getVelocity()) < taringConfig.taredVelocity)
+                Timer.getFPGATimestamp(),
+                Math.abs(getVelocity().baseUnitMagnitude())
+                    < taringConfig.taredVelocity.baseUnitMagnitude())
             && DriverStation.isEnabled()) {
           setPosition(taringConfig.taredPosition);
-          applySetpoint(getCurrentSetpoint());
+          applySetpoint(getSetpoint());
           hardware.enableSoftLimits(false);
           isTared = true;
         }
@@ -64,34 +76,31 @@ public class PositionSubsystem extends MotorSubsystem {
   }
 
   public boolean nearPositionSetpoint() {
-    return getCurrentSetpoint().isPositionSetpoint() && nearPosition(getSetpointValue());
+    return getSetpoint().isPositionSetpoint() && nearPosition(Revolutions.of(getSetpointValue()));
   }
 
-  public boolean nearPosition(double position) {
-    return MathUtil.isNear(position, getPosition(), epsilon);
-  }
-
-  public double getSetpointValue() {
-    return getCurrentSetpoint().getSetpointValue();
+  public boolean nearPosition(Angle position) {
+    return MathUtil.isNear(
+        position.baseUnitMagnitude(),
+        getPosition().baseUnitMagnitude(),
+        epsilon.baseUnitMagnitude());
   }
 
   @Override
   protected void applySetpoint(Setpoint setpoint) {
-    super.applySetpoint(setpoint);
+    if (setpoint.isPositionSetpoint()) {
+      super.applySetpoint(setpoint);
+    }
   }
 
   public Command runSetpointUntilNearPositionCmd(Setpoint setpoint) {
-    return waitUntilNearPositionCmd(setpoint.getSetpointValue())
+    return waitUntilNearPositionCmd(BaseUnits.AngleUnit.of(setpoint.getSetpointValue()))
         .withDeadline(runSetpointCmd(() -> setpoint))
         .withName(
-            getName()
-                + " RUN UNITL "
-                + getSetpointValue()
-                + " "
-                + getCurrentSetpoint().getSetpointType());
+            getName() + " RUN UNITL " + getSetpointValue() + " " + getSetpoint().getSetpointType());
   }
 
-  public Command waitUntilNearPositionCmd(double position) {
+  public Command waitUntilNearPositionCmd(Angle position) {
     return Commands.waitUntil(() -> nearPosition(position))
         .withName(getName() + " UNTIL " + position);
   }
