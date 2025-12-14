@@ -25,7 +25,7 @@ import org.frc6423.lib.hardware.ServoIO.Setpoint;
 import org.frc6423.lib.util.DelayedLatch;
 
 @Logged
-public class PositionSubsystem extends MotorSubsystem {
+public class ServoSubsystem extends MotorSubsystem {
   protected final boolean isTaredSubsystem;
   private final TaringConfig taringConfig;
   private boolean isTared = false;
@@ -40,7 +40,7 @@ public class PositionSubsystem extends MotorSubsystem {
     public AngularVelocity taredVelocity;
   }
 
-  public PositionSubsystem(
+  public ServoSubsystem(
       ServoIO hardware, boolean isTaredSubsystem, TaringConfig taringConfig, Angle epsilon) {
     super(hardware);
     this.isTaredSubsystem = isTaredSubsystem;
