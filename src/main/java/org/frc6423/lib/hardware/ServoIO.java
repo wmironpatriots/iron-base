@@ -44,6 +44,14 @@ public abstract class ServoIO implements Sendable {
       return type;
     }
 
+    public boolean isPositionSetpoint() {
+      return type == SetpointType.POSITION || type == SetpointType.PROFILED_POSITION;
+    }
+
+    public boolean isVelocitySetpoint() {
+      return type == SetpointType.VELOCITY || type == SetpointType.VELOCITY;
+    }
+
     public static Setpoint withDutycycle(double output) {
       UnaryOperator<ServoIO> applier =
           (ServoIO io) -> {
@@ -153,7 +161,7 @@ public abstract class ServoIO implements Sendable {
     }
   }
 
-  private final Unit positionUnit;
+  protected final Unit positionUnit;
 
   private Setpoint currentSetpoint = Setpoint.idle();
 
