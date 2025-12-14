@@ -155,7 +155,7 @@ public abstract class ServoIO implements Sendable {
 
   private final Unit positionUnit;
 
-  private Setpoint currentSetpoint;
+  private Setpoint currentSetpoint = Setpoint.idle();
 
   public ServoIO(Unit positionUnit) {
     this.positionUnit = positionUnit;
@@ -167,8 +167,10 @@ public abstract class ServoIO implements Sendable {
     builder.addDoubleProperty("Supply Current (Amps)", this::getSupplyCurrentAmperes, null);
     builder.addDoubleProperty("Stator Current (Amps)", this::getStatorCurrentAmperes, null);
 
-    builder.addDoubleProperty("Position " + getPositionUnit().toString(), this::getPosition, null);
-    builder.addDoubleProperty("Velocity " + getVelocityUnit().toString(), this::getVelocity, null);
+    builder.addDoubleProperty(
+        "Position (" + getPositionUnit().toString() + ")", this::getPosition, null);
+    builder.addDoubleProperty(
+        "Velocity (" + getVelocityUnit().toString() + ")", this::getVelocity, null);
 
     builder.addDoubleProperty("Temperature (Celsius)", this::getTemperatureCelsius, null);
 
