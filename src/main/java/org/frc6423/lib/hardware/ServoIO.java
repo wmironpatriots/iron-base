@@ -177,8 +177,6 @@ public abstract class ServoIO implements Sendable {
 
   private Setpoint currentSetpoint = Setpoint.idle();
 
-  public ServoIO() {}
-
   @Override
   public void initSendable(SendableBuilder builder) {
     builder.addDoubleProperty("Applied Voltage", () -> getAppliedVoltage().in(Volts), null);
