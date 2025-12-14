@@ -6,6 +6,12 @@
 
 package org.frc6423.lib.hardware;
 
+import static edu.wpi.first.units.Units.Amps;
+import static edu.wpi.first.units.Units.Celsius;
+import static edu.wpi.first.units.Units.Revolutions;
+import static edu.wpi.first.units.Units.RevolutionsPerSecond;
+import static edu.wpi.first.units.Units.Volts;
+
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
@@ -20,13 +26,18 @@ import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.units.Unit;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.units.measure.Temperature;
+import edu.wpi.first.units.measure.Voltage;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 
 public class ServoIOKrakenFoc extends ServoIO {
   private final TalonFX servo;
-  private final TalonFXConfiguration config;
+  private TalonFXConfiguration config;
 
   private final BaseStatusSignal voltSig, supplySig, statorSig, poseSig, velSig, tempSig;
 
@@ -48,6 +59,7 @@ public class ServoIOKrakenFoc extends ServoIO {
     super(unit);
     servo = new TalonFX(canDeviceId, canBusId);
     this.config = config;
+    applyConfig(config);
 
     voltSig = servo.getMotorVoltage();
     supplySig = servo.getSupplyCurrent();
@@ -57,11 +69,11 @@ public class ServoIOKrakenFoc extends ServoIO {
     tempSig = servo.getDeviceTemp();
   }
 
-  public void applyConfig(TalonFX fx, TalonFXConfiguration config) {
+  public void applyConfig(TalonFXConfiguration config) {
     threadPoolExecutor.submit(
         () -> {
           for (int i = 0; i < 5; i++) {
-            StatusCode result = fx.getConfigurator().apply(config);
+            StatusCode result = servo.getConfigurator().apply(config);
             if (result.isOK()) {
               break;
             }
@@ -70,33 +82,33 @@ public class ServoIOKrakenFoc extends ServoIO {
   }
 
   @Override
-  public double getAppliedVoltage() {
-    return voltSig.getValueAsDouble();
+  public Voltage getAppliedVoltage() {
+    return Volts.of(voltSig.getValueAsDouble());
   }
 
   @Override
-  public double getSupplyCurrentAmperes() {
-    return supplySig.getValueAsDouble();
+  public Current getSupplyCurrent() {
+    return Amps.of(supplySig.getValueAsDouble());
   }
 
   @Override
-  public double getStatorCurrentAmperes() {
-    return statorSig.getValueAsDouble();
+  public Current getStatorCurrent() {
+    return Amps.of(statorSig.getValueAsDouble());
   }
 
   @Override
-  public double getPosition() {
-    return poseSig.getValueAsDouble();
+  public Angle getPosition() {
+    return Revolutions.of(poseSig.getValueAsDouble());
   }
 
   @Override
-  public double getVelocity() {
-    return velSig.getValueAsDouble();
+  public AngularVelocity getVelocity() {
+    return RevolutionsPerSecond.of(velSig.getValueAsDouble());
   }
 
   @Override
-  public double getTemperatureCelsius() {
-    return tempSig.getValueAsDouble();
+  public Temperature getTemperature() {
+    return Celsius.of(tempSig.getValueAsDouble());
   }
 
   @Override
@@ -152,7 +164,8 @@ public class ServoIOKrakenFoc extends ServoIO {
 
   @Override
   public void enableSoftLimits(boolean enabled) {
-    // TODO
+    config.SoftwareLimitSwitch.ForwardSoftLimitEnable = enabled;
+    config.SoftwareLimitSwitch.ReverseSoftLimitEnable = enabled;
   }
 
   @Override

@@ -6,9 +6,19 @@
 
 package org.frc6423.lib.hardware;
 
+import static edu.wpi.first.units.Units.Amps;
+import static edu.wpi.first.units.Units.Celsius;
+import static edu.wpi.first.units.Units.Revolutions;
+import static edu.wpi.first.units.Units.RevolutionsPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
+import static edu.wpi.first.units.Units.Volts;
 
 import edu.wpi.first.units.Unit;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.units.measure.Temperature;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import java.util.function.UnaryOperator;
@@ -171,16 +181,15 @@ public abstract class ServoIO implements Sendable {
 
   @Override
   public void initSendable(SendableBuilder builder) {
-    builder.addDoubleProperty("Applied Voltage", this::getAppliedVoltage, null);
-    builder.addDoubleProperty("Supply Current (Ampere)", this::getSupplyCurrentAmperes, null);
-    builder.addDoubleProperty("Stator Current (Ampere)", this::getStatorCurrentAmperes, null);
+    builder.addDoubleProperty("Applied Voltage", () -> getAppliedVoltage().in(Volts), null);
+    builder.addDoubleProperty("Supply Current (Ampere)", () -> getSupplyCurrent().in(Amps), null);
+    builder.addDoubleProperty("Stator Current (Ampere)", () -> getStatorCurrent().in(Amps), null);
 
+    builder.addDoubleProperty("Position (Revolution)", () -> getPosition().in(Revolutions), null);
     builder.addDoubleProperty(
-        "Position (" + getPositionUnit().toString() + ")", this::getPosition, null);
-    builder.addDoubleProperty(
-        "Velocity (" + getVelocityUnit().toString() + ")", this::getVelocity, null);
+        "Velocity (Revolutions Per Second)", () -> getVelocity().in(RevolutionsPerSecond), null);
 
-    builder.addDoubleProperty("Temperature (Celsius)", this::getTemperatureCelsius, null);
+    builder.addDoubleProperty("Temperature (Celsius)", () -> getTemperature().in(Celsius), null);
 
     builder.addStringProperty(
         "Setpoint Type", () -> getCurrentSetpoint().getSetpointType().toString(), null);
@@ -195,17 +204,17 @@ public abstract class ServoIO implements Sendable {
     return positionUnit.per(Seconds);
   }
 
-  public abstract double getAppliedVoltage();
+  public abstract Voltage getAppliedVoltage();
 
-  public abstract double getSupplyCurrentAmperes();
+  public abstract Current getSupplyCurrent();
 
-  public abstract double getStatorCurrentAmperes();
+  public abstract Current getStatorCurrent();
 
-  public abstract double getPosition();
+  public abstract Angle getPosition();
 
-  public abstract double getVelocity();
+  public abstract AngularVelocity getVelocity();
 
-  public abstract double getTemperatureCelsius();
+  public abstract Temperature getTemperature();
 
   public Setpoint getCurrentSetpoint() {
     return currentSetpoint;
@@ -227,10 +236,6 @@ public abstract class ServoIO implements Sendable {
 
   protected abstract void setProfiledVelocitySetpoint(
       double velocity, double acceleration, int slot);
-
-  public void resetEncoder() {
-    resetEncoder(getPosition());
-  }
 
   public abstract void resetEncoder(double position);
 

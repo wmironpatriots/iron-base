@@ -29,11 +29,11 @@ public class MotorSubsystem extends SubsystemBase {
   }
 
   public double getSupplyCurrentAmperes() {
-    return hardware.getSupplyCurrentAmperes();
+    return hardware.getSupplyCurrent();
   }
 
   public double getStatorCurrentAmperes() {
-    return hardware.getStatorCurrentAmperes();
+    return hardware.getStatorCurrent();
   }
 
   public double getPosition() {
@@ -45,7 +45,7 @@ public class MotorSubsystem extends SubsystemBase {
   }
 
   public double getTemperatureCelsius() {
-    return hardware.getTemperatureCelsius();
+    return hardware.getTemperature();
   }
 
   public Setpoint getCurrentSetpoint() {
