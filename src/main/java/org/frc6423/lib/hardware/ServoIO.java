@@ -164,8 +164,8 @@ public abstract class ServoIO implements Sendable {
   @Override
   public void initSendable(SendableBuilder builder) {
     builder.addDoubleProperty("Applied Voltage", this::getAppliedVoltage, null);
-    builder.addDoubleProperty("Supply Current (Amps)", this::getSupplyCurrentAmperes, null);
-    builder.addDoubleProperty("Stator Current (Amps)", this::getStatorCurrentAmperes, null);
+    builder.addDoubleProperty("Supply Current (Ampere)", this::getSupplyCurrentAmperes, null);
+    builder.addDoubleProperty("Stator Current (Ampere)", this::getStatorCurrentAmperes, null);
 
     builder.addDoubleProperty(
         "Position (" + getPositionUnit().toString() + ")", this::getPosition, null);
