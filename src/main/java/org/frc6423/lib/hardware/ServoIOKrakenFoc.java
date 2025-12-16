@@ -56,6 +56,7 @@ public class ServoIOKrakenFoc extends ServoIO {
       new ThreadPoolExecutor(1, 1, 5, java.util.concurrent.TimeUnit.MILLISECONDS, queue);
 
   public ServoIOKrakenFoc(String canBusId, int canDeviceId, TalonFXConfiguration config) {
+    super(canBusId, canDeviceId);
     servo = new TalonFX(canDeviceId, canBusId);
     this.config = config;
     applyConfig(config);
@@ -170,7 +171,7 @@ public class ServoIOKrakenFoc extends ServoIO {
   }
 
   @Override
-  public void brakeEnabled(boolean enabled) {
+  public void enableBraking(boolean enabled) {
     threadPoolExecutor.submit(
         () -> servo.setNeutralMode(enabled ? NeutralModeValue.Brake : NeutralModeValue.Coast));
   }

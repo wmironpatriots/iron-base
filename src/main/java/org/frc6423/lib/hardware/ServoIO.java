@@ -177,6 +177,14 @@ public abstract class ServoIO implements Sendable {
 
   private Setpoint currentSetpoint = Setpoint.idle();
 
+  public final String canBusId;
+  public final int deviceId;
+
+  public ServoIO(String canBusId, int deviceId) {
+    this.canBusId = canBusId;
+    this.deviceId = deviceId;
+  }
+
   @Override
   public void initSendable(SendableBuilder builder) {
     builder.addDoubleProperty("Applied Voltage", () -> getAppliedVoltage().in(Volts), null);
@@ -251,5 +259,5 @@ public abstract class ServoIO implements Sendable {
    *
    * @param enabled set true to enable brake, false to disable
    */
-  public abstract void brakeEnabled(boolean enabled);
+  public abstract void enableBraking(boolean enabled);
 }

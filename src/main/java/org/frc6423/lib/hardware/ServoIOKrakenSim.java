@@ -15,6 +15,9 @@ import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
 
 public class ServoIOKrakenSim extends ServoIO {
+  public ServoIOKrakenSim(String canBusId, int deviceId) {
+    super(canBusId, deviceId);
+  }
 
   @Override
   public Voltage getAppliedVoltage() {
@@ -121,7 +124,7 @@ public class ServoIOKrakenSim extends ServoIO {
   }
 
   @Override
-  public void brakeEnabled(boolean enabled) {
+  public void enableBraking(boolean enabled) {
     // TODO Auto-generated method stub
     throw new UnsupportedOperationException("Unimplemented method 'brakeEnabled'");
   }
