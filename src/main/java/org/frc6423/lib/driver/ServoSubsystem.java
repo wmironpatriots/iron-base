@@ -41,8 +41,12 @@ public class ServoSubsystem extends MotorSubsystem {
   }
 
   public ServoSubsystem(
-      ServoIO hardware, boolean isTaredSubsystem, TaringConfig taringConfig, Angle epsilon) {
-    super(hardware);
+      boolean isTaredSubsystem,
+      TaringConfig taringConfig,
+      Angle epsilon,
+      boolean[] reverseDirection,
+      ServoIO... servos) {
+    super(reverseDirection, servos);
     this.isTaredSubsystem = isTaredSubsystem;
     this.taringConfig = taringConfig;
     this.epsilon = epsilon;
@@ -54,7 +58,7 @@ public class ServoSubsystem extends MotorSubsystem {
     if (isTaredSubsystem) {
       if (!isTared) {
         isTaring = true;
-        hardware.enableSoftLimits(false);
+        enableSoftLimits(false);
         tareDelay =
             new DelayedLatch(
                 Timer.getFPGATimestamp(), taringConfig.taringTimeoutSeconds.in(Seconds));
@@ -68,7 +72,7 @@ public class ServoSubsystem extends MotorSubsystem {
             && DriverStation.isEnabled()) {
           setPosition(taringConfig.taredPosition);
           applySetpoint(getSetpoint());
-          hardware.enableSoftLimits(false);
+          enableSoftLimits(false);
           isTared = true;
         }
       }
@@ -81,9 +85,7 @@ public class ServoSubsystem extends MotorSubsystem {
 
   public boolean nearPosition(Angle position) {
     return MathUtil.isNear(
-        position.baseUnitMagnitude(),
-        getPosition().baseUnitMagnitude(),
-        epsilon.baseUnitMagnitude());
+        position.baseUnitMagnitude(), getAngle().baseUnitMagnitude(), epsilon.baseUnitMagnitude());
   }
 
   @Override

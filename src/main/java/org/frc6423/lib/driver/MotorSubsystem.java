@@ -23,47 +23,73 @@ import java.util.function.Supplier;
 import org.frc6423.lib.hardware.ServoIO;
 import org.frc6423.lib.hardware.ServoIO.Setpoint;
 
-@Logged
 public class MotorSubsystem extends SubsystemBase {
-  protected final ServoIO hardware;
+  @Logged protected final ServoIO leader;
+  protected final ServoIO[] followers;
 
-  public MotorSubsystem(ServoIO hardware) {
-    this.hardware = hardware;
+  public MotorSubsystem(boolean[] reverseDirection, ServoIO... servos) {
+    this.leader = servos[0];
+    this.followers = new ServoIO[servos.length - 1];
+
+    assert reverseDirection.length != servos.length - 1
+        : getName()
+            + " subsystem configured incorrectly ~ length of reverseDirection array is not equal to the amount of followers";
+
+    for (int i = 0; i < followers.length; i++) {
+      this.followers[i] = servos[i + 1];
+      this.followers[i].setLeaderServo(leader.deviceId, reverseDirection[i]);
+    }
   }
 
   @Override
   public void periodic() {}
 
   public Voltage getAppliedVoltage() {
-    return hardware.getAppliedVoltage();
+    return leader.getAppliedVoltage();
   }
 
   public Current getSupplyCurrentAmperes() {
-    return hardware.getSupplyCurrent();
+    return leader.getSupplyCurrent();
   }
 
   public Current getStatorCurrentAmperes() {
-    return hardware.getStatorCurrent();
+    return leader.getStatorCurrent();
   }
 
-  public Angle getPosition() {
-    return hardware.getPosition();
+  public Angle getAngle() {
+    return leader.getPosition();
   }
 
   public AngularVelocity getVelocity() {
-    return hardware.getVelocity();
+    return leader.getVelocity();
   }
 
   public Temperature getTemperatureCelsius() {
-    return hardware.getTemperature();
+    return leader.getTemperature();
   }
 
   public Setpoint getSetpoint() {
-    return hardware.getCurrentSetpoint();
+    return leader.getCurrentSetpoint();
   }
 
   public double getSetpointValue() {
     return getSetpoint().getSetpointValue();
+  }
+
+  protected void enableSoftLimits(boolean enabled) {
+    leader.enableSoftLimits(enabled);
+
+    for (int i = 0; i < followers.length; i++) {
+      followers[i].enableSoftLimits(enabled);
+    }
+  }
+
+  protected void enableBraking(boolean enabled) {
+    leader.enableBraking(enabled);
+
+    for (ServoIO io : followers) {
+      io.enableBraking(enabled);
+    }
   }
 
   public Angle getSetpointAngle() {
@@ -79,11 +105,11 @@ public class MotorSubsystem extends SubsystemBase {
   }
 
   protected void applySetpoint(Setpoint setpoint) {
-    setpoint.apply(hardware);
+    setpoint.apply(leader);
   }
 
   protected void setPosition(Angle position) {
-    hardware.resetEncoder(position);
+    leader.resetEncoder(position);
   }
 
   public Command setSetpointCmd(Setpoint setpoint) {
